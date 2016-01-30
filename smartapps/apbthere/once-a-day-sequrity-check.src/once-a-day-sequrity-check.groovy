@@ -1,3 +1,5 @@
+import groovy.transform.Field 
+
 definition(
     name: "Once a Day Sequrity check",
     namespace: "apbthere",
@@ -113,13 +115,12 @@ def startTimerCallback() {
     	flashLights()
     }
 }
-    
+
+@Field def totalRuns
+@Field def currentRun = 0
+
 private flashLights() {
 	def doFlash = true
-	def onFor = onFor ?: 1000
-	def offFor = offFor ?: 1000
-	def numFlashes = numFlashes ?: 3
-    def keepFlashing = true
 
 	log.debug "LAST ACTIVATED IS: ${state.lastActivated}"
 	if (state.lastActivated) {
@@ -133,39 +134,55 @@ private flashLights() {
 		log.debug "FLASHING $numFlashes times"
 		state.lastActivated = now()
 		log.debug "LAST ACTIVATED SET TO: ${state.lastActivated}"
-		def initialActionOn = switches.collect{it.currentSwitch != "on"}
-		def delay = 0L
+		
         
-        try {
-            numFlashes.times {
-                log.trace "Switch on after  $delay msec"
-                switches.eachWithIndex {s, i ->
-                    if (initialActionOn[i]) {
-                        s.on(delay: delay)
-                    }
-                    else {
-                        s.off(delay:delay)
-                    }
-                }
-                delay += onFor
-                log.trace "Switch off after $delay msec"
-                switches.eachWithIndex {s, i ->
-                    if (initialActionOn[i]) {
-                        s.off(delay: delay)
-                    }
-                    else {
-                        s.on(delay:delay)
-                    }
-                }
-                delay += offFor
+        flashHandler()
+    }
+}
 
-//				keepFlashing = checkConditions()
-                if (!keepFlashing) {
-                	log.trace "All checks are good now."
-                    throw new Exception("All checks are good now.") 
+def flashHandler() {
+	def onFor = onFor ?: 1000
+	def offFor = offFor ?: 1000
+	def numFlashes = numFlashes ?: 3
+    def numFlashesPerRun = 4000 / (onFor + offFor)
+    def keepFlashing = true
+
+	totalRuns = numFlashes / numFlashesPerRun
+    
+    log.debug "Current Run $currentRun, Total runs $totalRuns"
+    
+	if (currentRun++ < totalRuns) {
+    	def initialActionOn = switches.collect{it.currentSwitch != "on"}
+		def delay = 0L
+        numFlashesPerRun.times {
+            log.trace "Switch on after  $delay msec"
+            switches.eachWithIndex {s, i ->
+                if (initialActionOn[i]) {
+                    s.on(delay: delay)
                 }
-        }
-    } catch (Exception e) { }
+                else {
+                    s.off(delay:delay)
+                }
+            }
+            delay += onFor
+            log.trace "Switch off after $delay msec"
+            switches.eachWithIndex {s, i ->
+                if (initialActionOn[i]) {
+                    s.off(delay: delay)
+                }
+                else {
+                    s.on(delay:delay)
+                }
+            }
+            delay += offFor
+		}
+
+		keepFlashing = checkConditions()
+        if (keepFlashing) {
+        	runIn(4, flashHandler)
+        } else {
+           	log.trace "All checks are good now."
+    	}
     }
 }
 
