@@ -10,7 +10,7 @@ definition(
 
 preferences { 
 	section("Select locks to check...") {
-		input name: "locks", type: "capability.lock", title: "door lock", required: false, multiple: true
+		input name: "locks", type: "capability.lock", title: "Which lock?", required: false, multiple: true
 	}
     section("Select sensors to check...") {
 		input name: "sensors", type: "capability.contactSensor", title: "Which sensor?", required: false, multiple: true
@@ -47,28 +47,6 @@ def updated(settings) {
 	schedule(startTime, "startTimerCallback")
 }
 
-def doorHandler(evt) {
-	log.debug "Received $evt.value event."
-}
-
-def checkConditions() {
-	log.debug "Checking the current conditions"
-    
-    def keepFlashing = 
-        locks.any {lock ->
-            "locked" != lock.currentLock
-        } ||
-        sensors.any {sensor ->
-            "closed" != sensor.currentContact
-        } ||
-        doorSensors.any {door ->
-            "closed" != door.currentDoor
-        }
-        
-    log.trace "Should keep flushing is $keepFlashing"
-    return keepFlashing
-}
-
 def sendMyMessage(message) {
 	log.debug message
     if (location.contactBookEnabled && recipients) {
@@ -90,22 +68,19 @@ def startTimerCallback() {
     
 	locks.findAll {lock -> "locked" != lock.currentLock}
     	.each {lock -> 
-            def message = "The ${lock.displayName} is ${lock.currentLock}!"
-            sendMyMessage(message)
+            sendMyMessage("The ${lock.displayName} is ${lock.currentLock}!")
             shouldFlash = true
     	}
     
     sensors.findAll {sensor -> "closed" != sensor.currentContact}
     	.each {sensor -> 
-            def message = "The ${sensor.displayName} is ${sensor.currentContact}!"
-            sendMyMessage(message)
+            sendMyMessage("The ${sensor.displayName} is ${sensor.currentContact}!")
             shouldFlash = true
     	}
     
     doorSensors.findAll {door -> "closed" != door.currentDoor}
     	.each {door -> 
-            def message = "The ${door.displayName} is ${door.currentDoor}!"
-            sendMyMessage(message)
+            sendMyMessage("The ${door.displayName} is ${door.currentDoor}!")
             shouldFlash = true
     	}
     
@@ -119,7 +94,6 @@ private flashLights() {
 	def onFor = onFor ?: 1000
 	def offFor = offFor ?: 1000
 	def numFlashes = numFlashes ?: 3
-    def keepFlashing = true
 
 	log.debug "LAST ACTIVATED IS: ${state.lastActivated}"
 	if (state.lastActivated) {
@@ -158,12 +132,6 @@ private flashLights() {
                     }
                 }
                 delay += offFor
-
-//				keepFlashing = checkConditions()
-                if (!keepFlashing) {
-                	log.trace "All checks are good now."
-                    throw new Exception("All checks are good now.") 
-                }
         }
     } catch (Exception e) { }
     }
