@@ -1,0 +1,79 @@
+definition(
+    name: "Closet Light",
+    namespace: "abthere",
+    author: "abthere",
+    description: "Turns on an outlet when the user is present and off after a period of time",
+    category: "Convenience",
+    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Meta/temp_thermo-switch.png",
+    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Meta/temp_thermo-switch@2x.png"
+)
+
+preferences {
+	section("When someone's around because of...") {
+		input name: "motionSensors", title: "Motion here", type: "capability.motionSensor", multiple: true, required: false
+	}
+	section("Turn on these light(s)") {
+		input name: "lights", title: "Which?", type: "capability.switch", multiple: true
+	}
+	section("For this amount of time") {
+		input name: "minutes", title: "Minutes?", type: "number", multiple: false
+	}
+}
+
+def installed() {
+	subscribeToEvents()
+}
+
+def updated() {
+	unsubscribe()
+	subscribeToEvents()
+}
+
+def subscribeToEvents() {
+	subscribe(motionSensors, "motion.active", motionActive)
+	subscribe(motionSensors, "motion.inactive", motionInactive)
+	subscribe(lights, "switch.on", lightsOn)
+}
+
+def motionActive(evt) {
+	log.debug "$evt.name: $evt.value"
+	outletsOn()
+}
+
+def motionInactive(evt) {
+	log.debug "$evt.name: $evt.value"
+	if (allQuiet()) {
+		outletsOff()
+	}
+}
+
+def allQuiet() {
+	def result = true
+	for (it in motionSensors) {
+		if (it.currentMotion == "active") {
+			result = false
+			break
+		}
+	}
+	return result
+}
+
+def outletsOn() {
+	lights.on()
+	unschedule("scheduledTurnOff")
+}
+
+def outletsOff() {
+	def delay = minutes * 60
+	runIn(delay, "scheduledTurnOff")
+}
+
+def scheduledTurnOff() {
+	lights.off()
+	unschedule("scheduledTurnOff") // Temporary work-around to scheduling bug
+}
+
+def lightsOn(evt) {
+	log.debug "$evt.name: $evt.value"
+	outletsOff()
+}
