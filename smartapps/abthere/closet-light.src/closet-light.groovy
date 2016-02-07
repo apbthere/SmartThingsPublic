@@ -2,7 +2,7 @@ definition(
     name: "Closet Light",
     namespace: "abthere",
     author: "abthere",
-    description: "Turns on an outlet when the user is present and off after a period of time",
+    description: "Turns on a light when motion is detected and off after a period of time",
     category: "Convenience",
     iconUrl: "https://s3.amazonaws.com/smartapp-icons/Meta/temp_thermo-switch.png",
     iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Meta/temp_thermo-switch@2x.png"
