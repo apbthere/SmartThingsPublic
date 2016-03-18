@@ -29,7 +29,6 @@ def updated(settings) {
 
 def sendMyMessage(message) {
 	log.debug message
-
     sendPush(message)
 }
 
