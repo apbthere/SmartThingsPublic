@@ -42,10 +42,10 @@ def updated()
 	subscribe(location, "sunset", sunsetHandler)
 }
 
-def sunsetHandler() {
+def sunsetHandler(evt) {
 	log.debug "Sun has set!"
     
     s.on()
     s.off([delay: 1000])
-    s.on([delay: 5000])
+    s.on([delay: 3000])
 }
