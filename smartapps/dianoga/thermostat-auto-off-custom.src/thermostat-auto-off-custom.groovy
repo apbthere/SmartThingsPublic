@@ -49,6 +49,10 @@ def initialize() {
 
 def sensorChange(evt) {
 	log.debug "Desc: $evt.value , $state"
+    def thermostatMode = thermostat.currentValue("thermostatMode")
+    if ('off' != thermostatMode) {
+    	state.thermostatMode = thermostatMode
+    }
     if(evt.value == 'open' && !state.changed) {
     	log.debug "Scheduling turn off in $delay seconds"
         state.scheduled = true;
