@@ -50,6 +50,7 @@ def initialize() {
 def sensorChange(evt) {
 	log.debug "Desc: $evt.value , $state"
     def thermostatMode = thermostat.currentValue("thermostatMode")
+    def oldMode = state.thermostatMode
     if ('off' != thermostatMode) {
     	state.thermostatMode = thermostatMode
     }
@@ -62,7 +63,9 @@ def sensorChange(evt) {
         	log.debug "Everything is closed, restoring thermostat"
             state.scheduled = false;
             unschedule('turnOff')
-			restore()
+            if(thermostatMode != oldMode) {
+				restore()
+            }
         } else {
         	log.debug "Something is still open."
         }
