@@ -46,6 +46,14 @@ def sunsetHandler(evt) {
 	log.debug "Sun has set!"
     
     s.on()
-    s.off([delay: 1000])
-    s.on([delay: 3000])
+    runIn(2, turnOff)
+}
+
+def turnOff() {
+	s.off()
+    runIn(2, turnOn)
+}
+
+def turnOn() {
+	s.on()
 }
