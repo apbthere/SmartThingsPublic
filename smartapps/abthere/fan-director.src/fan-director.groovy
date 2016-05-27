@@ -37,6 +37,9 @@ preferences {
     section("Turn fan on if humidity is greater then") {
 		input "humidityLevel", "number"
 	}
+    section("Outside humidity sensor") {
+		input "oh", "capability.relativeHumidityMeasurement", multiple: false, title: "Which humidity sensor?"
+	}
 }
 
 def installed() {
@@ -63,8 +66,8 @@ def humidityHandler(shower) {
   if (humidity > humidityLevel) {
   	log.debug "Relative humidity is ${shower.value}. Checking the outside humidity."
     
-    def weather = getWeatherFeature( "conditions" )
-    def outisedHumidity = weather.current_observation.relative_humidity.tokenize('%')[0].toInteger()
+    oh.poll()
+    def outisedHumidity = oh.value.toInteger()
     log.debug( "Relative Humidity Outside: ${outisedHumidity}" )
     
     if (outsideHumidity > humidity) {
