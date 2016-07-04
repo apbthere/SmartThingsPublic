@@ -49,6 +49,7 @@ def initialize() {
 
 def sensorChange(evt) {
 	log.debug "Desc: $evt.value , $state"
+    thermostat.poll()
     def thermostatMode = thermostat.currentValue("thermostatMode")
     def oldMode = state.thermostatMode
     if ('off' != thermostatMode) {

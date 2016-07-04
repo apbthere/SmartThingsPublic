@@ -26,6 +26,7 @@ def installed() {
 }
 
 def updated(settings) {
+	log.debug "Updated with settings: ${settings}"
 	unschedule()
 	schedule(startTime, "startTimerCallback")
 }
@@ -40,5 +41,7 @@ def startTimerCallback() {
             log.debug "Closing ${garageDoor.displayName}"
             garageDoor.close()
         }
-   	}
+   	} else {
+    	log.debug "${sensor.displayName} is closed, no action will be taken."
+    }
 }
