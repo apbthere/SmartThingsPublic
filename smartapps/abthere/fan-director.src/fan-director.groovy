@@ -92,7 +92,7 @@ def switchHandler(evt) {
 }
 
 def motionHandler(evt) {
-	if("active" == evt.value && "on" != myswitch.currentSwitch) {
+	if("active" == evt.value && "on" != s.currentSwitch) {
     	if(state.lastOff) {
 	        def elapsed = now() - state.lastOff
     	    log.debug "Time since last off event is ${elapsed/1000}"

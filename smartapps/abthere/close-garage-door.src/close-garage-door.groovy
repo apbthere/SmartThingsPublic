@@ -35,13 +35,27 @@ def startTimerCallback() {
     	if ("closed" == garageDoor.currentDoor) {
         	log.debug "Opening ${garageDoor.displayName}"
     		garageDoor.open()
-            log.debug "Will close ${garageDoor.displayName} in 60 seconds"
-            garageDoor.close(delay:6000)
+            runIn(60, closeDoor)
         } else {
-            log.debug "Closing ${garageDoor.displayName}"
-            garageDoor.close()
+            closeDoor()
         }
    	} else {
     	log.debug "${sensor.displayName} is closed, no action will be taken."
+    }
+}
+
+def closeDoor() {
+	log.debug "Closing ${garageDoor.displayName}"
+    garageDoor.close()
+    
+    runIn(60 * 2, checkDoor)
+}
+
+def checkDoor() {
+	if ("closed" != sensor.currentContact) {
+    	log.debug "checkDoor: The ${garageDoor.displayName} is still open. Closing now..."
+	    garageDoor.close()
+    } else {
+    	log.debug "checkDoor: The ${garageDoor.displayName} is closed."
     }
 }
