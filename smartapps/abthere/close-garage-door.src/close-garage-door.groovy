@@ -18,6 +18,12 @@ preferences {
 	section("Check them all on at...") {
 		input name: "startTime", title: "Turn On Time?", type: "time"
 	}
+    section("Send Notifications?") {
+        input("recipients", "contact", title: "Send notifications to") {
+            input "phone", "phone", title: "Warn with text message (optional)",
+                description: "Phone Number", required: false
+        }
+    }
 }
 
 def installed() {
@@ -55,7 +61,20 @@ def checkDoor() {
 	if ("closed" != sensor.currentContact) {
     	log.debug "checkDoor: The ${garageDoor.displayName} is still open. Closing now..."
 	    garageDoor.close()
+        sendMessage("Garage Door failed to close. Check it!");
     } else {
     	log.debug "checkDoor: The ${garageDoor.displayName} is closed."
+    }
+}
+
+def sendMessage(message) {
+	if (location.contactBookEnabled && recipients) {
+        log.debug "contact book enabled!"
+        sendNotificationToContacts(message, recipients)
+    } else {
+        log.debug "contact book not enabled"
+        if (phone) {
+            sendSms(phone, message)
+        }
     }
 }
